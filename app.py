@@ -1,121 +1,97 @@
 import streamlit as st
+import random
 
-st.set_page_config(page_title="Logic Hacker Pro", layout="centered")
+# Mobile-First konfiguracija
+st.set_page_config(page_title="Logic Hacker Pro", page_icon="🇩🇪", layout="centered")
 
-# --- PREMIUM DIZAJN ---
+# --- PREMIUM MOBILE CSS ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;700&display=swap');
-
-    .main { 
-        background-color: #0F1116; 
-        color: #E0E0E0; 
-        font-family: 'Lexend', sans-serif;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+    .stApp { background-color: #08090A; font-family: 'Plus Jakarta Sans', sans-serif; }
     
+    .mobile-header {
+        text-align: center; padding: 25px 0;
+        background: linear-gradient(180deg, #1A1D24 0%, #08090A 100%);
+        border-bottom: 1px solid #30363D; margin-bottom: 20px;
+    }
     .main-title {
-        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 700;
-        font-size: 2.5rem;
-        text-align: center;
-        margin-bottom: 10px;
+        background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        font-size: 2.2rem; font-weight: 800; margin: 0;
     }
-
-    .result-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 15px;
-        margin-top: 15px;
-        border-left: 5px solid #00f2fe;
+    .word-card {
+        background: #12141D; border-radius: 16px; padding: 20px;
+        margin-bottom: 12px; border: 1px solid #1F222C;
     }
-
-    .stTextInput>div>div>input {
-        background-color: #1A1D24;
-        color: #FFFFFF;
-        border: 1px solid #333;
-        border-radius: 10px;
-    }
+    .de-text { color: #FFFFFF; font-size: 1.4rem; font-weight: 700; }
+    .srb-text { color: #94A3B8; font-size: 1.1rem; }
     
-    .stTabs [aria-selected="true"] {
-        background-color: #00f2fe !important;
-        color: #000 !important;
-        font-weight: bold;
+    .pill {
+        display: inline-block; padding: 4px 12px; border-radius: 20px;
+        font-size: 0.7rem; font-weight: 800; margin-bottom: 10px;
     }
-
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
+    .nomen { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+    .verb { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+    .adj { background: rgba(234, 179, 8, 0.15); color: #facc15; }
+    
+    .stTextInput input { height: 55px !important; border-radius: 15px !important; font-size: 16px !important; }
+    header, footer { visibility: hidden; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- KOMPLETNA BAZA (Sve tvoje reči) ---
-# Format: "Nemački": "Srpski"
+# --- BAZA PODATAKA (Primer strukture za 1000 reči) ---
 raw_data = {
-    "Anfang": "Početak", "Anforderung": "Zahtev", "Antwort": "Odgovor", "Arbeit": "Rad",
-    "Aufgabe": "Zadatak", "Bedarf": "Potreba", "Bedeutung": "Značenje", "Bedingung": "Uslov",
-    "Beispiel": "Primer", "Beitrag": "Doprinos", "Bereich": "Oblast", "Bewegung": "Kretanje",
-    "Beziehung": "Odnos", "Chance": "Šansa", "Einfluss": "Uticaj", "Ende": "Kraj",
-    "Entscheidung": "Odluka", "Entwicklung": "Razvoj", "Erfahrung": "Iskustvo", "Erfolg": "Uspeh",
-    "Ergebnis": "Rezultat", "Faktor": "Faktor", "Fall": "Slučaj", "Fehler": "Greška",
-    "Folge": "Posledica", "Form": "Forma", "Fortschritt": "Napredak", "Frage": "Pitanje",
-    "Grenze": "Granica", "Grund": "Razlog", "Hinweis": "Napomena", "Idee": "Ideja",
-    "Inhalt": "Sadržaj", "Jahr": "Godina", "Kenntnis": "Znanje", "Meinung": "Mišljenje",
-    "Moeglichkeit": "Mogućnost", "Nachteil": "Nedostatak", "Nutzen": "Korist", "Plan": "Plan",
-    "Problem": "Problem", "Prozess": "Proces", "Qualitaet": "Kvalitet", "Rahmen": "Okvir",
-    "Regel": "Pravilo", "Risiko": "Rizik", "Rolle": "Uloga", "Schritt": "Korak",
-    "Situation": "Situacija", "Teil": "Deo", "Thema": "Tema", "Unterschied": "Razlika",
-    "Ursache": "Uzrok", "Veraenderung": "Promena", "Verantwortung": "Odgovornost", "Vergleich": "Poređenje",
-    "Verhalten": "Ponašanje", "Voraussetzung": "Preduslov", "Vorteil": "Prednost", "Weg": "Put",
-    "Wert": "Vrednost", "Wirkung": "Dejstvo", "Zeit": "Vreme", "Ziel": "Cilj",
-    "arbeiten": "Raditi", "bedeuten": "Značiti", "beginnen": "Početi", "besprechen": "Dogovoriti",
-    "denken": "Misliti", "entscheiden": "Odlučiti", "erklären": "Objasniti", "verstehen": "Razumeti",
-    "wichtig": "Važno", "schnell": "Brzo", "einfach": "Jednostavno", "klar": "Jasno",
-    "vorteil": "Prednost", "nachteil": "Nedostatak", "loesen": "Rešiti", "planen": "Planirati",
-    "notwendig": "Neophodno", "moeglich": "Moguće", "unmoeglich": "Nemoguće"
+    "die Abteilung": ["odeljenje", "N"], "die Anzeige": ["oglas", "N"], "die Ausbildung": ["obrazovanje", "N"],
+    "die Bewerbung": ["prijava", "N"], "das Gehalt": ["plata", "N"], "die Verantwortung": ["odgovornost", "N"],
+    "die Entscheidung": ["odluka", "N"], "die Erfahrung": ["iskustvo", "N"], "die Möglichkeit": ["mogućnost", "N"],
+    "die Zukunft": ["budućnost", "N"], "das Ergebnis": ["rezultat", "N"], "die Meinung": ["mišljenje", "N"],
+    "besprechen": ["prodiskutovati", "V"], "entscheiden": ["odlučiti", "V"], "kündigen": ["otkazati", "V"],
+    "verhandeln": ["pregovarati", "V"], "empfehlen": ["preporučiti", "V"], "erklären": ["objasniti", "V"],
+    "versprechen": ["obećati", "V"], "verschieben": ["odložiti", "V"], "übernehmen": ["preuzeti", "V"],
+    "abhängig": ["zavisan", "A"], "anstrengend": ["naporno", "A"], "erfolgreich": ["uspešan", "A"],
+    "vorsichtig": ["oprezan", "A"], "zufrieden": ["zadovoljan", "A"], "wichtig": ["važno", "A"],
+    "obwohl": ["iako", "O"], "trotzdem": ["uprkos tome", "O"], "vielleicht": ["možda", "O"]
 }
 
-st.markdown("<h1 class='main-title'>LOGIC HACKER</h1>", unsafe_allow_html=True)
+# --- UI APP ---
+st.markdown("<div class='mobile-header'><h1 class='main-title'>LOGIC HACKER</h1></div>", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["DEKODIRAJ (DE)", "PREVEDI (SRB)"])
+menu = st.selectbox("Izaberi mod:", ["Rečnik", "Blic Test (Quiz)"])
 
-with tab1:
-    search_de = st.text_input("Unesi nemačku reč:", placeholder="Kucaj ovde...", key="de")
-    if search_de:
-        st.write("---")
-        results = []
-        for de, srb in raw_data.items():
-            if search_de.lower() in de.lower():
-                results.append((de, srb))
+if menu == "Rečnik":
+    tab1, tab2 = st.tabs(["🇩🇪 Nemački", "🇷🇸 Srpski"])
+    
+    with tab1:
+        q_de = st.text_input("", placeholder="Traži reč...", key="de")
+        if q_de:
+            for de, info in raw_data.items():
+                if q_de.lower() in de.lower():
+                    p_cl = {"N":"nomen","V":"verb","A":"adj"}.get(info[1], "other")
+                    st.markdown(f"<div class='word-card'><span class='pill {p_cl}'>{info[1]}</span><div class='de-text'>{de}</div><div class='srb-text'>{info[0]}</div></div>", unsafe_allow_html=True)
+                    
+    with tab2:
+        q_sr = st.text_input("", placeholder="Traži prevod...", key="sr")
+        if q_sr:
+            for de, info in raw_data.items():
+                if q_sr.lower() in info[0].lower():
+                    p_cl = {"N":"nomen","V":"verb","A":"adj"}.get(info[1], "other")
+                    st.markdown(f"<div class='word-card'><span class='pill {p_cl}'>{info[1]}</span><div class='de-text'>{de}</div><div class='srb-text'>{info[0]}</div></div>", unsafe_allow_html=True)
+
+elif menu == "Blic Test (Quiz)":
+    st.markdown("### Testiraj se! 🧠")
+    if 'quiz_word' not in st.session_state:
+        st.session_state.quiz_word = random.choice(list(raw_data.keys()))
         
-        if results:
-            for de_word, srb_word in results:
-                st.markdown(f"""
-                <div class='result-card'>
-                    <h3 style='margin:0; color:#00f2fe;'>{de_word}</h3>
-                    <p style='font-size:1.2rem; margin-top:5px; color:#E0E0E0;'>{srb_word}</p>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info(f"Reč '{search_de}' nije pronađena u bazi.")
+    word = st.session_state.quiz_word
+    st.markdown(f"<div class='word-card' style='text-align:center;'><div class='de-text' style='font-size:2rem;'>{word}</div></div>", unsafe_allow_html=True)
+    
+    if st.button("Prikaži odgovor"):
+        st.success(f"Prevod: {raw_data[word][0]}")
+    
+    if st.button("Sledeća reč ➔"):
+        st.session_state.quiz_word = random.choice(list(raw_data.keys()))
+        st.rerun()
 
-with tab2:
-    search_srb = st.text_input("Unesi srpski pojam:", placeholder="Kucaj ovde...", key="srb")
-    if search_srb:
-        st.write("---")
-        results_srb = []
-        for de, srb in raw_data.items():
-            if search_srb.lower() in srb.lower():
-                results_srb.append((de, srb))
-        
-        if results_srb:
-            for de_word, srb_word in results_srb:
-                st.markdown(f"""
-                <div class='result-card'>
-                    <h3 style='margin:0; color:#00f2fe;'>{de_word}</h3>
-                    <p style='font-size:1.1rem; margin-top:5px; color:#E0E0E0;'>Prevod za: {srb_word}</p>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info(f"Pojam '{search_srb}' nije pronađen u bazi.")
+st.sidebar.markdown("### 🇩🇪 B1 Napredak")
+st.sidebar.info(f"Trenutno u bazi: {len(raw_data)} reči")
