@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Logic Hacker Pro", layout="centered")
 
-# --- CUSTOM STYLING (Boje i Fontovi) ---
+# --- PREMIUM DIZAJN ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;700&display=swap');
@@ -20,7 +20,7 @@ st.markdown("""
         font-weight: 700;
         font-size: 2.5rem;
         text-align: center;
-        margin-bottom: 0;
+        margin-bottom: 10px;
     }
 
     .result-card {
@@ -42,6 +42,7 @@ st.markdown("""
     .stTabs [aria-selected="true"] {
         background-color: #00f2fe !important;
         color: #000 !important;
+        font-weight: bold;
     }
 
     header {visibility: hidden;}
@@ -49,8 +50,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- MASIVNA BAZA PODATAKA ---
-# Ubacio sam tvoju listu i formatirao je za pretragu
+# --- KOMPLETNA BAZA (Sve tvoje reči) ---
+# Format: "Nemački": "Srpski"
 raw_data = {
     "Anfang": "Početak", "Anforderung": "Zahtev", "Antwort": "Odgovor", "Arbeit": "Rad",
     "Aufgabe": "Zadatak", "Bedarf": "Potreba", "Bedeutung": "Značenje", "Bedingung": "Uslov",
@@ -70,40 +71,51 @@ raw_data = {
     "Wert": "Vrednost", "Wirkung": "Dejstvo", "Zeit": "Vreme", "Ziel": "Cilj",
     "arbeiten": "Raditi", "bedeuten": "Značiti", "beginnen": "Početi", "besprechen": "Dogovoriti",
     "denken": "Misliti", "entscheiden": "Odlučiti", "erklären": "Objasniti", "verstehen": "Razumeti",
-    "wichtig": "Važno", "schnell": "Brzo", "einfach": "Jednostavno", "klar": "Jasno"
+    "wichtig": "Važno", "schnell": "Brzo", "einfach": "Jednostavno", "klar": "Jasno",
+    "vorteil": "Prednost", "nachteil": "Nedostatak", "loesen": "Rešiti", "planen": "Planirati",
+    "notwendig": "Neophodno", "moeglich": "Moguće", "unmoeglich": "Nemoguće"
 }
 
-# --- UI ---
 st.markdown("<h1 class='main-title'>LOGIC HACKER</h1>", unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["DEKODIRAJ (DE)", "PREVEDI (SRB)"])
 
 with tab1:
-    search_de = st.text_input("Unesi nemačku reč:", placeholder="npr. Entscheidung...", key="de")
+    search_de = st.text_input("Unesi nemačku reč:", placeholder="Kucaj ovde...", key="de")
     if search_de:
-        found = False
+        st.write("---")
+        results = []
         for de, srb in raw_data.items():
-            if de.lower() in search_de.lower():
+            if search_de.lower() in de.lower():
+                results.append((de, srb))
+        
+        if results:
+            for de_word, srb_word in results:
                 st.markdown(f"""
                 <div class='result-card'>
-                    <h3 style='margin:0; color:#00f2fe;'>{de}</h3>
-                    <p style='font-size:1.2rem; margin-top:5px;'>{srb}</p>
+                    <h3 style='margin:0; color:#00f2fe;'>{de_word}</h3>
+                    <p style='font-size:1.2rem; margin-top:5px; color:#E0E0E0;'>{srb_word}</p>
                 </div>
                 """, unsafe_allow_html=True)
-                found = True
-        if not found: st.info("Reč nije u bazi.")
+        else:
+            st.info(f"Reč '{search_de}' nije pronađena u bazi.")
 
 with tab2:
-    search_srb = st.text_input("Unesi srpski pojam:", placeholder="npr. Odluka...", key="srb")
+    search_srb = st.text_input("Unesi srpski pojam:", placeholder="Kucaj ovde...", key="srb")
     if search_srb:
-        found = False
+        st.write("---")
+        results_srb = []
         for de, srb in raw_data.items():
             if search_srb.lower() in srb.lower():
+                results_srb.append((de, srb))
+        
+        if results_srb:
+            for de_word, srb_word in results_srb:
                 st.markdown(f"""
                 <div class='result-card'>
-                    <h3 style='margin:0; color:#00f2fe;'>{de}</h3>
-                    <p style='font-size:1.2rem; margin-top:5px;'>Prevod za: {srb}</p>
+                    <h3 style='margin:0; color:#00f2fe;'>{de_word}</h3>
+                    <p style='font-size:1.1rem; margin-top:5px; color:#E0E0E0;'>Prevod za: {srb_word}</p>
                 </div>
                 """, unsafe_allow_html=True)
-                found = True
-        if not found: st.info("Pojam nije u bazi.")
+        else:
+            st.info(f"Pojam '{search_srb}' nije pronađen u bazi.")
