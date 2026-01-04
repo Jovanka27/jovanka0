@@ -1,155 +1,149 @@
 import streamlit as st
 import random
 
-# Postavke stranice
+# --- CONFIG ---
 st.set_page_config(page_title="Logic Hacker", layout="centered")
 
-# --- MINIMALIST BLACK & WHITE CSS ---
+# --- ULTRA MINIMALIST CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
-
-    /* Osnovna pozadina i font */
-    .stApp {
-        background-color: #FFFFFF;
-        font-family: 'Inter', sans-serif;
-        color: #000000;
-    }
-
-    /* Sakrivanje Streamlit elemenata */
+    .stApp { background-color: #FFFFFF; font-family: 'Inter', sans-serif; color: #000000; }
     header, footer, .stDeployButton { visibility: hidden; }
-
-    /* Naslov */
+    
     .app-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        margin-top: 40px;
-        border-bottom: 2px solid #000000;
-        padding-bottom: 10px;
-        color: #000000;
+        font-size: 1.2rem; font-weight: 700; text-align: center;
+        text-transform: uppercase; letter-spacing: 5px;
+        margin-top: 20px; padding-bottom: 20px; border-bottom: 1px solid #000000;
     }
-
-    /* Kartica za kviz */
+    .mission-header {
+        text-align: center; font-size: 0.7rem; letter-spacing: 2px;
+        margin-top: 20px; text-transform: uppercase; font-weight: 700;
+    }
     .quiz-card {
-        margin: 50px 0;
-        padding: 40px 20px;
-        border: 1px solid #000000;
-        text-align: center;
-        background: #FFFFFF;
+        margin: 30px 0; padding: 50px 10px;
+        border: 1px solid #000000; text-align: center;
     }
-
-    .word-main {
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-        color: #000000;
-    }
-
-    /* Button stilizacija - Crna pozadina, bela slova */
+    .word-main { font-size: 2rem; font-weight: 700; text-transform: none; }
+    
     .stButton>button {
-        width: 100%;
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        border-radius: 0px !important;
-        padding: 15px !important;
-        font-size: 1rem !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: 0.3s;
-        margin-bottom: 10px;
+        width: 100% !important; background-color: #000000 !important;
+        color: #FFFFFF !important; border: 1px solid #000000 !important;
+        border-radius: 0px !important; padding: 16px !important;
+        font-size: 0.85rem !important; text-transform: uppercase;
+        letter-spacing: 1px; margin-bottom: 8px;
     }
-
-    .stButton>button:hover {
-        background-color: #333333 !important;
-    }
-
-    /* Statistika */
-    .stat-text {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        text-align: center;
-        color: #000000;
-    }
-
-    /* Feedback poruke */
-    .stAlert {
-        border-radius: 0px !important;
-        border: 1px solid #000000 !important;
-        background-color: #FFFFFF !important;
-        color: #000000 !important;
+    .stButton>button:hover { background-color: #FFFFFF !important; color: #000000 !important; }
+    
+    /* Input polje za kucanje (Letter Hunter) */
+    .stTextInput input {
+        border-radius: 0px !important; border: 1px solid #000 !important;
+        text-align: center; font-size: 1.2rem !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- BAZA PODATAKA (1000 REČI - Primer) ---
-# Tipovi: N (Nomen), V (Verb), A (Adj)
-words_db = [
-    {"de": "die Verantwortung", "sr": "odgovornost", "type": "N"},
-    {"de": "entscheiden", "sr": "odlučiti", "type": "V"},
-    {"de": "obwohl", "sr": "iako", "type": "O"},
-    {"de": "anstrengend", "sr": "naporno", "type": "A"},
-    {"de": "das Gehalt", "sr": "plata", "type": "N"},
-    {"de": "besprechen", "sr": "prodiskutovati", "type": "V"},
-    {"de": "fleißig", "sr": "vredan", "type": "A"},
-    {"de": "trotzdem", "sr": "uprkos tome", "type": "O"}
+# --- SVEOBUHVATNA BAZA (1000 REČI - Primer kategorizacije) ---
+# U pravoj aplikaciji ovde ide svih 1000 reči podeljenih u liste
+words_office = [
+    {"de": "die Verantwortung", "sr": "odgovornost", "ex": "Ich trage die ___."},
+    {"de": "besprechen", "sr": "prodiskutovati", "ex": "Wir müssen das ___."},
+    {"de": "die Kündigung", "sr": "otkaz", "ex": "Er hat die ___ erhalten."},
+    {"de": "verhandeln", "sr": "pregovarati", "ex": "Wir ___ über das Gehalt."}
 ]
 
-# --- LOGIKA APLIKACIJE ---
+words_life = [
+    {"de": "obwohl", "sr": "iako", "ex": "Ich komme, ___ ja ich müde bin."},
+    {"de": "trotzdem", "sr": "uprkos tome", "ex": "Es regnet, ___ gehe ich raus."},
+    {"de": "anstrengend", "sr": "naporno", "ex": "Der Tag war sehr ___."}
+]
+
+# --- LOGIKA ---
 if 'xp' not in st.session_state: st.session_state.xp = 0
-if 'current_word' not in st.session_state:
-    st.session_state.current_word = random.choice(words_db)
+if 'mission' not in st.session_state: st.session_state.mission = "OFFICE CHAOS"
 
-# --- UI ---
-st.markdown("<div class='app-title'>Logic Hacker Pro</div>", unsafe_allow_html=True)
-st.write("")
-st.markdown(f"<div class='stat-text'>NIVO: B1 &nbsp; | &nbsp; POENI: {st.session_state.xp}</div>", unsafe_allow_html=True)
-
-# Centralna kartica
-st.markdown(f"""
-    <div class='quiz-card'>
-        <div style='font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 10px;'>DEUTSCH</div>
-        <div class='word-main'>{st.session_state.current_word['de']}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# Generisanje opcija (tačna + 3 nasumične)
-correct_answer = st.session_state.current_word['sr']
-if 'options' not in st.session_state:
-    others = [w['sr'] for w in words_db if w['sr'] != correct_answer]
-    st.session_state.options = random.sample(others, 3) + [correct_answer]
+def reset_quiz():
+    st.session_state.current_q = random.choice(words_office + words_life)
+    # Generisanje opcija
+    correct = st.session_state.current_q['sr']
+    all_sr = [w['sr'] for w in (words_office + words_life)]
+    others = list(set([s for s in all_sr if s != correct]))
+    st.session_state.options = random.sample(others, 3) + [correct]
     random.shuffle(st.session_state.options)
 
-# Dugmići za odgovore
-for option in st.session_state.options:
-    if st.button(option):
-        if option == correct_answer:
-            st.session_state.xp += 10
-            # Reset za sledeću reč
-            st.session_state.current_word = random.choice(words_db)
-            # Čišćenje opcija da bi se generisale nove za sledeću reč
-            del st.session_state.options
-            st.rerun()
-        else:
-            st.error("POGREŠNO. POKUŠAJ PONOVO.")
+if 'current_q' not in st.session_state:
+    reset_quiz()
 
-# Pomoćne opcije na dnu
-st.write("")
-if st.button("PRESKOČI REČ ➔", key="skip"):
-    st.session_state.current_word = random.choice(words_db)
-    if 'options' in st.session_state: del st.session_state.options
+# --- UI ---
+st.markdown("<div class='app-title'>Logic Hacker</div>", unsafe_allow_html=True)
+
+# Menu za izbor misije (Kvizova)
+mission_choice = st.selectbox("IZABERI MISIJU:", ["OFFICE CHAOS", "LETTER HUNTER", "SENTENCE BUILDER"])
+
+if mission_choice != st.session_state.mission:
+    st.session_state.mission = mission_choice
+    reset_quiz()
     st.rerun()
 
-# --- OSMOSMERKA IDEJA (Minimalistička) ---
-with st.sidebar:
-    st.markdown("### INFO")
-    st.write("Cilj: 2400 reči.")
-    st.write("---")
-    st.write("USKORO: Osmosmerka mod.")
-    if st.button("RESET XP"):
-        st.session_state.xp = 0
+st.markdown(f"<div class='mission-header'>{st.session_state.mission} | XP: {st.session_state.xp}</div>", unsafe_allow_html=True)
+
+# --- MOD 1: OFFICE CHAOS (Pogađanje reči) ---
+if st.session_state.mission == "OFFICE CHAOS":
+    st.markdown(f"""
+        <div class='quiz-card'>
+            <div style='font-size:0.7rem; opacity:0.5;'>PREVEDI</div>
+            <div class='word-main'>{st.session_state.current_q['de']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    for opt in st.session_state.options:
+        if st.button(opt):
+            if opt == st.session_state.current_q['sr']:
+                st.session_state.xp += 10
+                reset_quiz()
+                st.rerun()
+            else:
+                st.toast("Falsch!")
+
+# --- MOD 2: LETTER HUNTER (Kucanje reči - Spelling) ---
+elif st.session_state.mission == "LETTER HUNTER":
+    st.markdown(f"""
+        <div class='quiz-card'>
+            <div style='font-size:0.7rem; opacity:0.5;'>UPIŠI NEMAČKU REČ</div>
+            <div class='word-main'>{st.session_state.current_q['sr']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    user_input = st.text_input("ODGOVOR:", key="hunter_input").strip()
+    if st.button("PROVERI"):
+        if user_input.lower() == st.session_state.current_q['de'].lower():
+            st.session_state.xp += 20
+            reset_quiz()
+            st.rerun()
+        else:
+            st.error(f"Nije tačno. Tačno je: {st.session_state.current_q['de']}")
+
+# --- MOD 3: SENTENCE BUILDER (Logika rečenice) ---
+elif st.session_state.mission == "SENTENCE BUILDER":
+    example_sentence = st.session_state.current_q['ex']
+    missing_word = st.session_state.current_q['de']
+    
+    st.markdown(f"""
+        <div class='quiz-card'>
+            <div style='font-size:0.7rem; opacity:0.5;'>DOPUNI REČENICU</div>
+            <div class='word-main' style='font-size:1.4rem;'>{example_sentence}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    if st.button(missing_word):
+        st.session_state.xp += 15
+        reset_quiz()
         st.rerun()
+    if st.button("pokušaj nešto drugo"):
+        st.toast("To ne ide tu.")
+
+# Donji meni
+st.write("---")
+if st.button("SLEDEĆA REČ ➔"):
+    reset_quiz()
+    st.rerun()
