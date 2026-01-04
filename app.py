@@ -1,118 +1,109 @@
-
 import streamlit as st
 
-# Postavke ekrana
-st.set_page_config(page_title="Logic Hacker Pro", page_icon="📟", layout="centered")
+st.set_page_config(page_title="Logic Hacker Pro", layout="centered")
 
-# --- NAPREDNI CUSTOM DIZAJN ---
+# --- CUSTOM STYLING (Boje i Fontovi) ---
 st.markdown("""
     <style>
-    /* Glavna pozadina sa blagim gradijentom */
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;700&display=swap');
+
     .main { 
-        background: linear-gradient(180deg, #050505 0%, #0a0a0a 100%); 
-        color: #00ff41; 
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #0F1116; 
+        color: #E0E0E0; 
+        font-family: 'Lexend', sans-serif;
     }
     
-    /* Kartice za rezultate */
-    .result-card {
-        background-color: #111111;
-        border: 1px solid #00ff41;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 255, 65, 0.2);
-        margin-bottom: 20px;
-    }
-    
-    /* Input polja */
-    .stTextInput>div>div>input {
-        background-color: #1a1a1a;
-        color: #00ff41;
-        border: 2px solid #333;
-        border-radius: 10px;
-        font-size: 18px;
-    }
-    .stTextInput>div>div>input:focus {
-        border-color: #00ff41;
+    .main-title {
+        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        font-size: 2.5rem;
+        text-align: center;
+        margin-bottom: 0;
     }
 
-    /* Tabovi */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background-color: transparent;
+    .result-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 15px;
+        border-left: 5px solid #00f2fe;
     }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        background-color: #111;
-        border-radius: 10px 10px 0 0;
-        color: #00ff41;
+
+    .stTextInput>div>div>input {
+        background-color: #1A1D24;
+        color: #FFFFFF;
         border: 1px solid #333;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #00ff41 !important;
-        color: #000 !important;
+        border-radius: 10px;
     }
     
-    /* Sakrivanje Streamlit elemenata */
+    .stTabs [aria-selected="true"] {
+        background-color: #00f2fe !important;
+        color: #000 !important;
+    }
+
     header {visibility: hidden;}
-    #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- LOGIČKA BAZA (Proširena) ---
-logic_db = {
-    "de_srb": {
-        "arbeitsvertrag": "Ugovor o radu", "kündigung": "Otkaz / Raskid",
-        "frist": "Rok / Deadline", "gehalt": "Plata / Zarada",
-        "versicherung": "Osiguranje", "abteilung": "Sektor / Odeljenje",
-        "besprechung": "Sastanak", "entscheidung": "Odluka",
-        "mitarbeiter": "Zaposleni", "vereinbarung": "Dogovor / Sporazum"
-    },
-    "srb_de": {
-        "plata": "Gehalt", "otkaz": "Kündigung", "rok": "Frist",
-        "sastanak": "Besprechung", "ugovor": "Vertrag", "saradnja": "Zusammenarbeit",
-        "izveštaj": "Bericht", "zahtev": "Anforderung", "odluka": "Entscheidung"
-    }
+# --- MASIVNA BAZA PODATAKA ---
+# Ubacio sam tvoju listu i formatirao je za pretragu
+raw_data = {
+    "Anfang": "Početak", "Anforderung": "Zahtev", "Antwort": "Odgovor", "Arbeit": "Rad",
+    "Aufgabe": "Zadatak", "Bedarf": "Potreba", "Bedeutung": "Značenje", "Bedingung": "Uslov",
+    "Beispiel": "Primer", "Beitrag": "Doprinos", "Bereich": "Oblast", "Bewegung": "Kretanje",
+    "Beziehung": "Odnos", "Chance": "Šansa", "Einfluss": "Uticaj", "Ende": "Kraj",
+    "Entscheidung": "Odluka", "Entwicklung": "Razvoj", "Erfahrung": "Iskustvo", "Erfolg": "Uspeh",
+    "Ergebnis": "Rezultat", "Faktor": "Faktor", "Fall": "Slučaj", "Fehler": "Greška",
+    "Folge": "Posledica", "Form": "Forma", "Fortschritt": "Napredak", "Frage": "Pitanje",
+    "Grenze": "Granica", "Grund": "Razlog", "Hinweis": "Napomena", "Idee": "Ideja",
+    "Inhalt": "Sadržaj", "Jahr": "Godina", "Kenntnis": "Znanje", "Meinung": "Mišljenje",
+    "Moeglichkeit": "Mogućnost", "Nachteil": "Nedostatak", "Nutzen": "Korist", "Plan": "Plan",
+    "Problem": "Problem", "Prozess": "Proces", "Qualitaet": "Kvalitet", "Rahmen": "Okvir",
+    "Regel": "Pravilo", "Risiko": "Rizik", "Rolle": "Uloga", "Schritt": "Korak",
+    "Situation": "Situacija", "Teil": "Deo", "Thema": "Tema", "Unterschied": "Razlika",
+    "Ursache": "Uzrok", "Veraenderung": "Promena", "Verantwortung": "Odgovornost", "Vergleich": "Poređenje",
+    "Verhalten": "Ponašanje", "Voraussetzung": "Preduslov", "Vorteil": "Prednost", "Weg": "Put",
+    "Wert": "Vrednost", "Wirkung": "Dejstvo", "Zeit": "Vreme", "Ziel": "Cilj",
+    "arbeiten": "Raditi", "bedeuten": "Značiti", "beginnen": "Početi", "besprechen": "Dogovoriti",
+    "denken": "Misliti", "entscheiden": "Odlučiti", "erklären": "Objasniti", "verstehen": "Razumeti",
+    "wichtig": "Važno", "schnell": "Brzo", "einfach": "Jednostavno", "klar": "Jasno"
 }
 
-# --- UI STRUKTURA ---
-st.markdown("<h1 style='text-align: center; color: #00ff41;'>LOGIC HACKER</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; opacity: 0.6;'>v7.0 // Terminal Access</p>", unsafe_allow_html=True)
+# --- UI ---
+st.markdown("<h1 class='main-title'>LOGIC HACKER</h1>", unsafe_allow_html=True)
 
-tab_de, tab_srb = st.tabs(["🔍 DEKODER (DE)", "✍️ PREVOD (SRB)"])
+tab1, tab2 = st.tabs(["DEKODIRAJ (DE)", "PREVEDI (SRB)"])
 
-with tab_de:
-    word_de = st.text_input("Unesi nemačku reč:", key="de_in", placeholder="npr. Abteilung...")
-    if word_de:
-        st.markdown("<div class='result-card'>", unsafe_allow_html=True)
+with tab1:
+    search_de = st.text_input("Unesi nemačku reč:", placeholder="npr. Entscheidung...", key="de")
+    if search_de:
         found = False
-        for k, v in logic_db["de_srb"].items():
-            if k in word_de.lower():
-                st.markdown(f"<h2 style='color: #00ff41; margin:0;'>{k.upper()}</h2>", unsafe_allow_html=True)
-                st.markdown(f"<p style='font-size: 20px;'>{v}</p>", unsafe_allow_html=True)
+        for de, srb in raw_data.items():
+            if de.lower() in search_de.lower():
+                st.markdown(f"""
+                <div class='result-card'>
+                    <h3 style='margin:0; color:#00f2fe;'>{de}</h3>
+                    <p style='font-size:1.2rem; margin-top:5px;'>{srb}</p>
+                </div>
+                """, unsafe_allow_html=True)
                 found = True
-        if not found:
-            st.write("Reč nije u lokalnoj bazi.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        if not found: st.info("Reč nije u bazi.")
 
-with tab_srb:
-    word_srb = st.text_input("Unesi srpski pojam:", key="srb_in", placeholder="npr. Otkaz...")
-    if word_srb:
-        st.markdown("<div class='result-card'>", unsafe_allow_html=True)
+with tab2:
+    search_srb = st.text_input("Unesi srpski pojam:", placeholder="npr. Odluka...", key="srb")
+    if search_srb:
         found = False
-        for k, v in logic_db["srb_de"].items():
-            if k in word_srb.lower():
-                st.markdown(f"<h2 style='color: #00ff41; margin:0;'>{v}</h2>", unsafe_allow_html=True)
-                st.markdown(f"<p style='font-size: 20px;'>Prevod za: {k}</p>", unsafe_allow_html=True)
+        for de, srb in raw_data.items():
+            if search_srb.lower() in srb.lower():
+                st.markdown(f"""
+                <div class='result-card'>
+                    <h3 style='margin:0; color:#00f2fe;'>{de}</h3>
+                    <p style='font-size:1.2rem; margin-top:5px;'>Prevod za: {srb}</p>
+                </div>
+                """, unsafe_allow_html=True)
                 found = True
-        if not found:
-            st.write("Pojam nije u lokalnoj bazi.")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# --- FOOTER NAV ---
-st.markdown("---")
-col1, col2, col3 = st.columns(3)
-col1.metric("Baza", "1.200+")
-col2.metric("Status", "Secure")
-col3.metric("Mode", "Manual")
+        if not found: st.info("Pojam nije u bazi.")
